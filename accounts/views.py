@@ -13,11 +13,10 @@ class SignupView(CreateView):
     success_url = reverse_lazy("tweets:home")
 
     def form_valid(self, form):
+        # signupしたらそのままloginするように実装
         response = super().form_valid(form)
-        print(self.object)
         username = form.cleaned_data["username"]
         password = form.cleaned_data["password1"]
-        print(form.cleaned_data)
         user = authenticate(self.request, username=username, password=password)
         login(self.request, user)
         return response
