@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -25,7 +26,7 @@ class TestSignupView(TestCase):
         response = self.client.post(self.url, valid_data)
         self.assertRedirects(
             response,
-            reverse("tweets:home"),
+            settings.LOGIN_REDIRECT_URL,
             status_code=302,
             target_status_code=200,
         )
@@ -221,18 +222,75 @@ class TestSignupView(TestCase):
         self.assertFalse(User.objects.filter(username=invalid_data["username"]).exists())
 
 
-# class TestLoginView(TestCase):
-#     def test_success_get(self):
+class TestLoginView(TestCase):
+    def setUp(self):
+        self.url = reverse("accounts:login")
+        self.user = User.objects.create_user(username="tester", password="testpassword")
 
-#     def test_success_post(self):
+    def test_success_get(self):
+        response = self.client.get(self.url)
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
 
-#     def test_failure_post_with_not_exists_user(self):
+    def test_success_post(self):
+        valid_login_data = {
+            "username": "tester",
+            "password": "testpassword",
+        }
+        response = self.client.post(self.url, valid_login_data)
+        # Response Status Code: 302　設定のLOGIN_REDIRECT_URLにリダイレクトしている
+        self.assertRedirects(
+            response,
+            settings.LOGIN_REDIRECT_URL,
+            status_code=302,
+            target_status_code=200,
+        )
+        # client.sessionにSESSION_KEYが含まれている
+        self.assertIn(SESSION_KEY, self.client.session)
 
-#     def test_failure_post_with_empty_password(self):
+    def test_failure_post_with_not_exists_user(self):
+        invalid_login_data = {
+            "username": "tester2",
+            "password": "testpassword",
+        }
+        response = self.client.post(self.url, invalid_login_data)
+        form = response.context["form"]
+
+        # フォームに適切なエラーメッセージが含まれている
+        self.assertIn("正しいユーザー名とパスワードを入力してください。どちらのフィールドも大文字と小文字は区別されます。", form.errors["__all__"])
+
+        # client.sessionにSESSION_KEYが含まれていない
+        self.assertNotIn(SESSION_KEY, self.client.session)
+
+    def test_failure_post_with_empty_password(self):
+        invalid_login_data = {
+            "username": "tester",
+            "password": "",
+        }
+        response = self.client.post(self.url, invalid_login_data)
+        form = response.context["form"]
+
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
+        # フォームに適切なエラーメッセージが含まれている
+        self.assertIn("このフィールドは必須です。", form.errors["password"])
+        # client.sessionにSESSION_KEYが含まれていない
+        self.assertNotIn(SESSION_KEY, self.client.session)
 
 
-# class TestLogoutView(TestCase):
-#     def test_success_post(self):
+class TestLogoutView(TestCase):
+    def setUp(self):
+        self.url = reverse("accounts:logout")
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.client.login(username="tester", password="testpassword")
+
+    def test_success_post(self):
+        response = self.client.post(self.url)
+
+        # Response Status Code: 302, 設定のLOGOUT_REDIRECT_URLにリダイレクトしている
+        self.assertRedirects(response, settings.LOGOUT_REDIRECT_URL, status_code=302)
+        # client.sessionにSESSION_KEYが含まれていない
+        self.assertNotIn(SESSION_KEY, self.client.session)
 
 
 # class TestUserProfileView(TestCase):
