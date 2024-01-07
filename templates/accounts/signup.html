@@ -1,12 +1,11 @@
-{% extends "base.html" %}
-{% block title %}Sign Up{% endblock %}
-
+{% extends "base.html" %} 
+{% block title %}Sign Up{% endblock %} 
 {% block content %}
 <form method="POST">
-	{{ form.as_p }} 
-    <!-- ↑ formにはSignupFormのインスタンスが入っている。as_pとすることで、各input要素がpタグで囲まれた状態で表示される。 -->
-	{% csrf_token %} 
-    <!-- ↑csrf_token必須。formタグ内であればどこに書いてもOK -->
-	<button type="submit">ユーザー登録</button>
+  {{ form.as_p }}
+  <!-- ↑ formにはSignupFormのインスタンスが入っている。as_pとすることで、各input要素がpタグで囲まれた状態で表示される。 -->
+  {% csrf_token %}
+  <!-- ↑csrf_token必須。formタグ内であればどこに書いてもOK -->
+  <button type="submit">ユーザー登録</button>
 </form>
 {% endblock %}
