@@ -24,6 +24,7 @@ class TestSignupView(TestCase):
         }
 
         response = self.client.post(self.url, valid_data)
+        # 設定したLOGIN_REDIRECT_URLにリダイレクトしている
         self.assertRedirects(
             response,
             settings.LOGIN_REDIRECT_URL,
@@ -225,6 +226,7 @@ class TestSignupView(TestCase):
 class TestLoginView(TestCase):
     def setUp(self):
         self.url = reverse("accounts:login")
+        # ログイン用ユーザーの作成
         self.user = User.objects.create_user(username="tester", password="testpassword")
 
     def test_success_get(self):
@@ -238,7 +240,7 @@ class TestLoginView(TestCase):
             "password": "testpassword",
         }
         response = self.client.post(self.url, valid_login_data)
-        # Response Status Code: 302　設定のLOGIN_REDIRECT_URLにリダイレクトしている
+        # Response Status Code: 302、設定のLOGIN_REDIRECT_URLにリダイレクトしている
         self.assertRedirects(
             response,
             settings.LOGIN_REDIRECT_URL,
@@ -258,7 +260,6 @@ class TestLoginView(TestCase):
 
         # フォームに適切なエラーメッセージが含まれている
         self.assertIn("正しいユーザー名とパスワードを入力してください。どちらのフィールドも大文字と小文字は区別されます。", form.errors["__all__"])
-
         # client.sessionにSESSION_KEYが含まれていない
         self.assertNotIn(SESSION_KEY, self.client.session)
 
@@ -281,7 +282,9 @@ class TestLoginView(TestCase):
 class TestLogoutView(TestCase):
     def setUp(self):
         self.url = reverse("accounts:logout")
+        # ログアウト用ユーザーの作成
         self.user = User.objects.create_user(username="tester", password="testpassword")
+        # ログイン
         self.client.login(username="tester", password="testpassword")
 
     def test_success_post(self):
