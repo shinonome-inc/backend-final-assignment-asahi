@@ -3,6 +3,10 @@
 {% block content %}
 <h1>プロフィール</h1>
 <h2>{{ user.username }}</h2>
+{% for tweet in tweets %}
+<li><p>{{ tweet.user.username }}</p><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p></li>
+{% endfor %}
+<a href="{% url 'tweets:home' %}">ホームに戻る</a>
 <form method="POST" action="/accounts/logout/"> {% csrf_token %}
   <button type="submit">ログアウト</button>
   </form>

@@ -1,6 +1,10 @@
 from django.conf import settings
 from django.contrib.auth import authenticate, login
+from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, TemplateView
+
+from accounts.models import User
+from tweets.models import Tweet
 
 from .forms import SignupForm
 
@@ -24,3 +28,9 @@ class SignupView(CreateView):
 
 class UserProfileView(TemplateView):
     template_name = "accounts/profile.html"
+
+    def get_context_data(self,username):
+        context = super().get_context_data()
+        user = get_object_or_404(User, username=username)
+        context['tweets'] = Tweet.objects.filter(user=user)
+        return context
