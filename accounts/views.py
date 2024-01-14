@@ -13,6 +13,7 @@ class SignupView(CreateView):
     form_class = SignupForm
     template_name = "accounts/signup.html"
     success_url = reverse_lazy(settings.LOGIN_REDIRECT_URL)
+
     def form_valid(self, form):
         # signupしたらそのままloginするように実装
         response = super().form_valid(form)
