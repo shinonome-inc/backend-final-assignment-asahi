@@ -225,7 +225,7 @@ class TestSignupView(TestCase):
 
 class TestLoginView(TestCase):
     def setUp(self):
-        self.url = reverse("accounts:login")
+        self.url = reverse(settings.LOGIN_URL)
         # ログイン用ユーザーの作成
         self.user = User.objects.create_user(username="tester", password="testpassword")
 
@@ -281,7 +281,7 @@ class TestLoginView(TestCase):
 
 class TestLogoutView(TestCase):
     def setUp(self):
-        self.url = reverse("accounts:logout")
+        self.url = reverse(settings.LOGOUT_URL)
         # ログアウト用ユーザーの作成
         self.user = User.objects.create_user(username="tester", password="testpassword")
         # ログイン
