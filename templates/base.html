@@ -18,7 +18,13 @@
     <!-- /header  -->
 
     <!-- main  -->
-    <main>{% block content %} {% endblock %}</main>
+    <main>{% block content %} {% endblock %}
+      {% if request.path != "/" and request.path != "/accounts/signup/" and request.path != "/accounts/login/" %}
+        <form method="POST" action="/accounts/logout/"> {% csrf_token %}
+          <button type="submit">ログアウト</button>
+        </form>
+      {% endif %}
+    </main>
     <!-- /main  -->
   </body>
 </html>

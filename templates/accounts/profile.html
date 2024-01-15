@@ -3,7 +3,4 @@
 {% block content %}
 <h1>プロフィール</h1>
 <h2>{{ user.username }}</h2>
-<form method="POST" action="/accounts/logout/"> {% csrf_token %}
-    <button type="submit">ログアウト</button>
-  </form>
 {% endblock %}
