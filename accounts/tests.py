@@ -1,12 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
 from django.test import TestCase
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 
 from tweets.models import Tweet
 
 User = get_user_model()
-
 
 
 class TestSignupView(TestCase):
@@ -311,13 +310,13 @@ class TestUserProfileView(TestCase):
         self.client.login(username="tester2", password="testpassword2")
         self.tweet2 = Tweet.objects.create(user=self.user, content="tester2 tweet")
 
-        self.url = reverse("accounts:user_profile",kwargs={'username': self.user})
+        self.url = reverse("accounts:user_profile", kwargs={"username": self.user})
 
     def test_success_get(self):
         response = self.client.get(self.url)
         # Response Status Code: 200
         self.assertEqual(response.status_code, 200)
-        context_tweets = response.context['tweets']
+        context_tweets = response.context["tweets"]
         db_user_tweets = Tweet.objects.filter(user=self.user)
         # context内に含まれるツイート一覧が、DBに保存されているツイート一覧と同一である
         self.assertQuerysetEqual(context_tweets, db_user_tweets, ordered=False)

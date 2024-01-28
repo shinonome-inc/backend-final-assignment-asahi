@@ -34,8 +34,8 @@ class CustomLoginView(LoginView):
 class UserProfileView(LoginRequiredMixin, TemplateView):
     template_name = "accounts/profile.html"
 
-    def get_context_data(self,username):
+    def get_context_data(self, username):
         context = super().get_context_data()
         user = get_object_or_404(User, username=username)
-        context['tweets'] = Tweet.objects.filter(user=user)
+        context["tweets"] = Tweet.objects.filter(user=user)
         return context
