@@ -30,7 +30,7 @@ class TestSignupView(TestCase):
         # 設定したLOGIN_REDIRECT_URLにリダイレクトしている
         self.assertRedirects(
             response,
-            settings.LOGIN_REDIRECT_URL,
+            reverse(settings.LOGIN_REDIRECT_URL),
             status_code=302,
             target_status_code=200,
         )
@@ -228,7 +228,7 @@ class TestSignupView(TestCase):
 
 class TestLoginView(TestCase):
     def setUp(self):
-        self.url = reverse("accounts:login")
+        self.url = reverse(settings.LOGIN_URL)
         # ログイン用ユーザーの作成
         self.user = User.objects.create_user(username="tester", password="testpassword")
 
@@ -246,7 +246,7 @@ class TestLoginView(TestCase):
         # Response Status Code: 302、設定のLOGIN_REDIRECT_URLにリダイレクトしている
         self.assertRedirects(
             response,
-            settings.LOGIN_REDIRECT_URL,
+            reverse(settings.LOGIN_REDIRECT_URL),
             status_code=302,
             target_status_code=200,
         )
@@ -284,7 +284,7 @@ class TestLoginView(TestCase):
 
 class TestLogoutView(TestCase):
     def setUp(self):
-        self.url = reverse("accounts:logout")
+        self.url = reverse(settings.LOGOUT_URL)
         # ログアウト用ユーザーの作成
         self.user = User.objects.create_user(username="tester", password="testpassword")
         # ログイン
@@ -294,7 +294,7 @@ class TestLogoutView(TestCase):
         response = self.client.post(self.url)
 
         # Response Status Code: 302, 設定のLOGOUT_REDIRECT_URLにリダイレクトしている
-        self.assertRedirects(response, settings.LOGOUT_REDIRECT_URL, status_code=302)
+        self.assertRedirects(response, reverse(settings.LOGOUT_REDIRECT_URL), status_code=302)
         # client.sessionにSESSION_KEYが含まれていない
         self.assertNotIn(SESSION_KEY, self.client.session)
 

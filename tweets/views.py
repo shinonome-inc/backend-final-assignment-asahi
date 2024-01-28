@@ -1,6 +1,3 @@
-# from django.shortcuts import render
-from typing import Any
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.query import QuerySet
 from django.urls import reverse_lazy
