@@ -122,7 +122,6 @@ class TestTweetDeleteView(TestCase):
         # ユーザー2の作成
         self.user = User.objects.create_user(username="tester2", password="testpassword2")
         self.client.login(username="tester2", password="testpassword2")
-        print(self.user)
         response = self.client.post(self.url)
         # Response Status Code: 403
         self.assertEqual(response.status_code, 403)
