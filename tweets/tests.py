@@ -74,16 +74,57 @@ class TestTweetCreateView(TestCase):
         self.assertFalse(Tweet.objects.filter(content=invalid_data["content"]).exists())
 
 
-# class TestTweetDetailView(TestCase):
-#     def test_success_get(self):
+class TestTweetDetailView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.client.login(username="tester", password="testpassword")
+        # ツイートを作成
+        self.tweet1 = Tweet.objects.create(user=self.user, content="Test tweet 1")
+        self.url = reverse("tweets:detail", kwargs={"pk": self.tweet1.pk})
+
+    def test_success_get(self):
+        response = self.client.get(self.url)
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
+        # context内に含まれるツイートがDBと同一である
+        self.assertTrue(Tweet.objects.filter(content=self.tweet1.content).exists())
 
 
-# class TestTweetDeleteView(TestCase):
-#     def test_success_post(self):
+class TestTweetDeleteView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.client.login(username="tester", password="testpassword")
+        # ツイートを作成
+        self.tweet1 = Tweet.objects.create(user=self.user, content="Test tweet 1")
+        self.url = reverse("tweets:delete", kwargs={"pk": self.tweet1.pk})
 
-#     def test_failure_post_with_not_exist_tweet(self):
+    def test_success_post(self):
+        response = self.client.post(self.url)
+        # Response Status Code: 302 ホームにリダイレクトしている
+        self.assertRedirects(response, "/tweets/home/", status_code=302)
+        # DBのデータが削除されている
+        self.assertFalse(Tweet.objects.filter(pk=self.tweet1.pk).exists())
 
-#     def test_failure_post_with_incorrect_user(self):
+    def test_failure_post_with_not_exist_tweet(self):
+        queryset_before_deletion = Tweet.objects.all()
+        not_exist_tweet_pk = 999
+        response = self.client.post(reverse("tweets:delete", kwargs={"pk": not_exist_tweet_pk}))
+        # 期待通りのステータスコードが返されることを確認
+        self.assertEqual(response.status_code, 404)
+        # DBの中身が削除されていない
+        self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion)
+
+    def test_failure_post_with_incorrect_user(self):
+        queryset_before_deletion = Tweet.objects.all()
+        # ユーザー2の作成
+        self.user = User.objects.create_user(username="tester2", password="testpassword2")
+        self.client.login(username="tester2", password="testpassword2")
+        print(self.user)
+        response = self.client.post(self.url)
+        # Response Status Code: 403
+        self.assertEqual(response.status_code, 403)
+        # DBのデータが削除されていない
+        self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion)
 
 
 # class TestLikeView(TestCase):
