@@ -69,7 +69,10 @@ class TestTweetCreateView(TestCase):
         self.assertEqual(response.status_code, 200)
         form = response.context["form"]
         # フォームに適切なエラーメッセージが含まれている
-        self.assertIn(f"この値は 140 文字以下でなければなりません( {len(invalid_data['content'])} 文字になっています)。", form.errors["content"])
+        self.assertIn(
+            f"この値は 140 文字以下でなければなりません( {len(invalid_data['content'])} 文字になっています)。",
+            form.errors["content"],
+        )
         # DBにレコードが追加されていない
         self.assertFalse(Tweet.objects.filter(content=invalid_data["content"]).exists())
 

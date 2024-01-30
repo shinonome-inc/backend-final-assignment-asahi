@@ -261,7 +261,10 @@ class TestLoginView(TestCase):
         form = response.context["form"]
 
         # フォームに適切なエラーメッセージが含まれている
-        self.assertIn("正しいユーザー名とパスワードを入力してください。どちらのフィールドも大文字と小文字は区別されます。", form.errors["__all__"])
+        self.assertIn(
+            "正しいユーザー名とパスワードを入力してください。どちらのフィールドも大文字と小文字は区別されます。",
+            form.errors["__all__"],
+        )
         # client.sessionにSESSION_KEYが含まれていない
         self.assertNotIn(SESSION_KEY, self.client.session)
 
