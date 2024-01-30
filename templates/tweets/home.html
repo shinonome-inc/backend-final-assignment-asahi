@@ -5,6 +5,6 @@
 <a href="{% url 'tweets:create' %}">ツイートする</a>
 <a href="{% url 'accounts:user_profile' username=user.username %}">プロフィール</a>
 {% for tweet in tweets %}
-<li><p>{{ tweet.user.username }}</p><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p></li>
+<li><a href="{% url 'accounts:user_profile' username=tweet.user %}">{{ tweet.user.username }}</a><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p></li>
 {% endfor %}
 {% endblock %}
