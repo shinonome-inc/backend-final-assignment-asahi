@@ -38,5 +38,5 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data()
         user = get_object_or_404(User, username=username)
         context["user"] = username
-        context["tweets"] = Tweet.objects.filter(user=user)
+        context["tweets"] = Tweet.objects.select_related("user").filter(user=user)
         return context

@@ -14,7 +14,7 @@ class HomeView(LoginRequiredMixin, ListView):
     context_object_name = "tweets"
 
     def get_queryset(self):
-        return Tweet.objects.all()
+        return Tweet.objects.all().select_related("user")
 
 
 class TweetCreateView(LoginRequiredMixin, CreateView):
