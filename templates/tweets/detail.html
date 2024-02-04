@@ -8,5 +8,5 @@
 {% if user.pk == tweet.user.pk %}
 <a href="{% url 'tweets:delete' pk=tweet.pk %}">このツイートを削除する</a>
 {% endif %}
-<a href="{% url 'tweets:home' %}">ホームに戻る</a>
+<p><a href="{% url 'tweets:home' %}">ホームに戻る</a></p>
 {% endblock %}
