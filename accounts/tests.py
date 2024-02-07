@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, get_user_model
+from django.shortcuts import get_object_or_404
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.models import FriendShip
 from tweets.models import Tweet
 
 User = get_user_model()
@@ -335,12 +337,35 @@ class TestUserProfileView(TestCase):
 #     def test_failure_post_with_incorrect_user(self):
 
 
-# class TestFollowView(TestCase):
-#     def test_success_post(self):
+class TestFollowView(TestCase):
+    def setUp(self):
+        # tester1（ダミー）
+        self.user = User.objects.create_user(username="tester1", password="testpassword1")
+        self.client.login(username="tester1", password="testpassword1")
+        self.client.logout()
+        # tester2(test_success_get対象user)
+        self.user = User.objects.create_user(username="tester2", password="testpassword2")
+        self.client.login(username="tester2", password="testpassword2")
+        self.url = "accounts:follow"
 
-#     def test_failure_post_with_not_exist_user(self):
+    def test_success_post(self):
+        following = "tester1"
+        response = self.client.post(reverse(self.url, kwargs={"username": following}))
+        # Response Status Code: 302, リダイレクト先のStatus Code: 200, Homeにリダイレクトしている
+        self.assertRedirects(
+            response,
+            reverse(settings.LOGIN_REDIRECT_URL),
+            status_code=302,
+            target_status_code=200,
+        )
+        # DBにデータが追加されている
+        following_user = get_object_or_404(User, username=following)
+        self.assertTrue(FriendShip.objects.all().filter(follower=self.user,following=following_user).exists())
 
-#     def test_failure_post_with_self(self):
+
+    # def test_failure_post_with_not_exist_user(self):
+
+    # def test_failure_post_with_self(self):
 
 
 # class TestUnfollowView(TestCase):
