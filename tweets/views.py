@@ -9,12 +9,10 @@ from .models import Tweet
 class HomeView(LoginRequiredMixin, ListView):
     model = Tweet
     template_name = "tweets/home.html"
-    # 作成日降順でソート
-    ordering = ["-created_at"]
     context_object_name = "tweets"
 
     def get_queryset(self):
-        return Tweet.objects.all().select_related("user")
+        return Tweet.objects.all().select_related("user").order_by("-created_at")
 
 
 class TweetCreateView(LoginRequiredMixin, CreateView):
