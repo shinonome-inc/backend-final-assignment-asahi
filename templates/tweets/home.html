@@ -2,7 +2,6 @@
 {% block title %}Home{% endblock %} 
 {% block content %}
 <h1>Homeです！</h1>
-<p>アカウント名 {{ request.user }} でログイン中です！</p>
 <p><a href="{% url 'tweets:create' %}">ツイートする</a></p>
 <p><a href="{% url 'accounts:user_profile' username=user.username %}">プロフィール</a></p>
 <br>

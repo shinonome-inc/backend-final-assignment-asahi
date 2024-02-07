@@ -1,0 +1,10 @@
+{% extends "base.html" %} 
+{% block title %}Home{% endblock %} 
+{% block content %}
+<h1>フォロワー一覧</h1>
+<a href="{% url 'accounts:user_profile' username=request.user %}">プロフィールに戻る</a>
+{% for friendship in friendships %}
+<li><a href="{% url 'accounts:user_profile' username=friendship.following %}">{{ friendship.follower }}</a><p>フォロー日時：{{ friendship.created_at }}</p></li>
+{% endfor %}
+<p><a href="{% url 'tweets:home' %}">ホームに戻る</a></p>
+{% endblock %}
