@@ -303,16 +303,12 @@ class TestLogoutView(TestCase):
 
 class TestUserProfileView(TestCase):
     def setUp(self):
-        # tester1（ダミー）
-        self.user = User.objects.create_user(username="tester1", password="testpassword1")
-        self.client.login(username="tester1", password="testpassword1")
-        self.tweet1 = Tweet.objects.create(user=self.user, content="tester1 tweet")
-        self.client.logout()
-        # tester2(test_success_get対象user)
-        self.user = User.objects.create_user(username="tester2", password="testpassword2")
-        self.client.login(username="tester2", password="testpassword2")
-        self.tweet2 = Tweet.objects.create(user=self.user, content="tester2 tweet")
-
+        self.dummy_user = User.objects.create_user(username="dummy", password="dummypassword1")
+        self.tweet1 = Tweet.objects.create(user=self.dummy_user, content="dummy tweet")
+        self.user = User.objects.create_user(username="tester", password="testpassword1")
+        self.tweet2 = Tweet.objects.create(user=self.user, content="tester tweet")
+        # テスト時にはログイン必要のため
+        self.client.login(username="tester", password="testpassword1")
         self.url = reverse("accounts:user_profile", kwargs={"username": self.user})
 
     def test_success_get(self):
