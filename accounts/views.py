@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, ListView, TemplateView
+from django.views.generic import CreateView, ListView
 
 from accounts.models import FriendShip, User
 from tweets.models import Tweet
@@ -33,7 +33,7 @@ class CustomLoginView(LoginView):
     template_name = "accounts/login.html"
 
 
-class UserProfileView(LoginRequiredMixin, TemplateView):
+class UserProfileView(LoginRequiredMixin, ListView):
     template_name = "accounts/profile.html"
 
     def get_context_data(self, username):
