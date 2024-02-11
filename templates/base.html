@@ -16,13 +16,14 @@
           {% endif %}
         </ul>
       </nav>
-      {% if  request.user.is_authenticated %}
-      <p>アカウント名 {{ request.user }} でログイン中です！</p>
-      {% endif%}
+      {% if messages %}
+      <ul>
+          {% for message in messages %}
+          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+          {% endfor %}
+      </ul>
+      {% endif %}
     </header>
-    <!-- /header  -->
-
-    <!-- main  -->
     <main>{% block content %} {% endblock %}
       {% if request.user.is_authenticated %}
         <form method="POST" action="/accounts/logout/"> {% csrf_token %}

@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
@@ -17,7 +17,7 @@ from .forms import SignupForm
 class SignupView(CreateView):
     form_class = SignupForm
     template_name = "accounts/signup.html"
-    success_url = reverse_lazy(settings.LOGIN_REDIRECT_URL)
+    success_url = reverse_lazy("tweets:home")
 
     def form_valid(self, form):
         # signupしたらそのままloginするように実装
@@ -53,6 +53,7 @@ class FollowView(LoginRequiredMixin, View):
     def post(self, request, username):
         following_user = get_object_or_404(User, username=username)
         if request.user == following_user:
+            messages.error(self.request, "自分自身をフォローすることはできません。")
             return HttpResponseBadRequest()
         # 既にフォローしているかチェック
         is_following = FriendShip.objects.filter(follower=request.user, following=following_user).exists()
@@ -63,7 +64,7 @@ class FollowView(LoginRequiredMixin, View):
         follow_instance = FriendShip(follower=request.user, following=following_user)
         follow_instance.save()
 
-        return HttpResponseRedirect(reverse_lazy(settings.LOGIN_REDIRECT_URL))
+        return HttpResponseRedirect(reverse_lazy("tweets:home"))
 
 
 class UnFollowView(LoginRequiredMixin, View):
