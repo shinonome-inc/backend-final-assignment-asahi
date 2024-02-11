@@ -339,18 +339,13 @@ class TestUserProfileView(TestCase):
 
 class TestFollowView(TestCase):
     def setUp(self):
-        # tester1（ダミー）
-        self.user = User.objects.create_user(username="tester1", password="testpassword1")
-        self.client.login(username="tester1", password="testpassword1")
-        self.client.logout()
-        # tester2(test_success_get対象user)
-        self.user = User.objects.create_user(username="tester2", password="testpassword2")
-        self.client.login(username="tester2", password="testpassword2")
+        self.dummy_user = User.objects.create_user(username="dummy1", password="dummypassword1")
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.client.login(username="tester", password="testpassword")
         self.url = "accounts:follow"
 
     def test_success_post(self):
-        following = "tester1"
-        response = self.client.post(reverse(self.url, kwargs={"username": following}))
+        response = self.client.post(reverse(self.url, kwargs={"username": "dummy1"}))
         # Response Status Code: 302, リダイレクト先のStatus Code: 200, Homeにリダイレクトしている
         self.assertRedirects(
             response,
@@ -359,26 +354,80 @@ class TestFollowView(TestCase):
             target_status_code=200,
         )
         # DBにデータが追加されている
-        following_user = get_object_or_404(User, username=following)
-        self.assertTrue(FriendShip.objects.all().filter(follower=self.user,following=following_user).exists())
+        following_user = get_object_or_404(User, username="dummy1")
+        self.assertTrue(FriendShip.objects.all().filter(follower=self.user, following=following_user).exists())
+
+    def test_failure_post_with_not_exist_user(self):
+        response = self.client.post(reverse(self.url, kwargs={"username": "not_exist_user"}))
+        # Response Status Code: 404
+        self.assertEqual(response.status_code, 404)
+        # DBにレコードが追加されていない
+        self.assertFalse(FriendShip.objects.all().filter(follower=self.user).exists())
+
+    def test_failure_post_with_self(self):
+        response = self.client.post(reverse(self.url, kwargs={"username": "tester"}))
+        # Response Status Code: 400
+        self.assertEqual(response.status_code, 400)
+        # DBにレコードが追加されていない
+        self.assertFalse(FriendShip.objects.all().filter(follower=self.user).exists())
 
 
-    # def test_failure_post_with_not_exist_user(self):
+class TestUnfollowView(TestCase):
 
-    # def test_failure_post_with_self(self):
+    def setUp(self):
+        self.dummy_user = User.objects.create_user(username="dummy1", password="dummypassword1")
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        FriendShip.objects.create(follower=self.user, following=self.dummy_user)
+        self.client.login(username="tester", password="testpassword")
+        self.url = "accounts:unfollow"
+
+    def test_success_post(self):
+        response = self.client.post(reverse(self.url, kwargs={"username": "dummy1"}))
+        # Response Status Code: 302, リダイレクト先のStatus Code: 200, Homeにリダイレクトしている
+        self.assertRedirects(
+            response,
+            reverse(settings.LOGIN_REDIRECT_URL),
+            status_code=302,
+            target_status_code=200,
+        )
+        # DBにデータが削除されている
+        following_user = get_object_or_404(User, username="dummy1")
+        self.assertFalse(FriendShip.objects.all().filter(follower=self.user, following=following_user).exists())
+
+    def test_failure_post_with_not_exist_tweet(self):
+        response = self.client.post(reverse(self.url, kwargs={"username": "not_exist_user"}))
+        # Response Status Code: 404
+        self.assertEqual(response.status_code, 404)
+        # DBにレコードが削除されていない
+        self.assertTrue(FriendShip.objects.all().filter(follower=self.user).exists())
+
+    def test_failure_post_with_incorrect_user(self):
+        response = self.client.post(reverse(self.url, kwargs={"username": "tester"}))
+        # Response Status Code: 400
+        self.assertEqual(response.status_code, 400)
+        # DBにレコードが削除されていない
+        self.assertTrue(FriendShip.objects.all().filter(follower=self.user).exists())
 
 
-# class TestUnfollowView(TestCase):
-#     def test_success_post(self):
+class TestFollowingListView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.client.login(username="tester", password="testpassword")
+        self.url = reverse("accounts:following_list", kwargs={"username": "tester"})
 
-#     def test_failure_post_with_not_exist_tweet(self):
-
-#     def test_failure_post_with_incorrect_user(self):
-
-
-# class TestFollowingListView(TestCase):
-#     def test_success_get(self):
+    def test_success_get(self):
+        response = self.client.get(self.url)
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
 
 
-# class TestFollowerListView(TestCase):
-#     def test_success_get(self):
+class TestFollowerListView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.client.login(username="tester", password="testpassword")
+        self.url = reverse("accounts:follower_list", kwargs={"username": "tester"})
+
+    def test_success_get(self):
+        response = self.client.get(self.url)
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
