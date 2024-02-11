@@ -7,9 +7,6 @@
   <body>
     <!-- header  -->
     <header class="mb-3">
-      {% if  request.user.is_authenticated %}
-      <p>アカウント名 {{ request.user }} でログイン中です！</p>
-      {% endif%}
       <nav>
         <ul>
           <li><a href="{% url 'welcome:welcome' %}">Twitter Clone</a></li>
@@ -19,6 +16,9 @@
           {% endif %}
         </ul>
       </nav>
+      {% if  request.user.is_authenticated %}
+      <p>アカウント名 {{ request.user }} でログイン中です！</p>
+      {% endif%}
     </header>
     <!-- /header  -->
 
