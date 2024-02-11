@@ -38,12 +38,13 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, username):
         context = super().get_context_data()
-        user = get_object_or_404(User, username=username)
-        following_friendships = FriendShip.objects.all().filter(follower=self.request.user)
-        context["following"] = [friendship.following for friendship in following_friendships]
-        context["follower_number"] = FriendShip.objects.all().filter(following=self.request.user).count()
-        context["user"] = user
-        context["tweets"] = Tweet.objects.select_related("user").filter(user=user)
+        profile_user = get_object_or_404(User, username=username)
+        user_following_friendships = FriendShip.objects.all().filter(follower=self.request.user)
+        context["user_following"] = [friendship.following for friendship in user_following_friendships]
+        context["following_number"] = FriendShip.objects.all().filter(follower=profile_user).count()
+        context["follower_number"] = FriendShip.objects.all().filter(following=profile_user).count()
+        context["profile_user"] = profile_user
+        context["tweets"] = Tweet.objects.select_related("user").filter(user=profile_user)
         return context
 
 
@@ -51,7 +52,6 @@ class FollowView(LoginRequiredMixin, View):
 
     def post(self, request, username):
         following_user = get_object_or_404(User, username=username)
-        # 自分自身をフォローしようとしている場合、プロフィール画面にリダイレクト
         if request.user == following_user:
             return HttpResponseBadRequest()
         # 既にフォローしているかチェック
@@ -71,10 +71,8 @@ class UnFollowView(LoginRequiredMixin, View):
     def post(self, request, username):
         unfollowing_user = get_object_or_404(User, username=username)
         follow_instance = FriendShip.objects.filter(follower=request.user, following=unfollowing_user)
-        # 自分自身をフォローしようとしている場合、プロフィール画面にリダイレクト
         if request.user == unfollowing_user:
             return HttpResponseBadRequest()
-
         # フォローしていなければリダイレクト、していればフォロー解除
         if not follow_instance:
             return HttpResponseRedirect(reverse_lazy("accounts:user_profile", kwargs={"username": username}))
@@ -90,12 +88,19 @@ class FollowingListView(LoginRequiredMixin, ListView):
     context_object_name = "friendships"
 
     def get_queryset(self):
+        self.username = self.kwargs.get("username")
+        following_user = User.objects.get(username=self.username)
         return (
             FriendShip.objects.all()
-            .filter(follower=self.request.user)
+            .filter(follower=following_user)
             .select_related("following")
             .order_by("-created_at")
         )
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context["username"] = self.username
+        return context
 
 
 class FollowerListView(LoginRequiredMixin, ListView):
@@ -104,9 +109,13 @@ class FollowerListView(LoginRequiredMixin, ListView):
     context_object_name = "friendships"
 
     def get_queryset(self):
+        self.username = self.kwargs.get("username")
+        follower_user = User.objects.get(username=self.username)
         return (
-            FriendShip.objects.all()
-            .filter(following=self.request.user)
-            .select_related("follower")
-            .order_by("-created_at")
+            FriendShip.objects.all().filter(following=follower_user).select_related("follower").order_by("-created_at")
         )
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context["username"] = self.username
+        return context
