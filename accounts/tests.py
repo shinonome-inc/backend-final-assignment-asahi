@@ -390,14 +390,14 @@ class TestUnfollowView(TestCase):
         following_user = get_object_or_404(User, username="dummy1")
         self.assertFalse(FriendShip.objects.all().filter(follower=self.user, following=following_user).exists())
 
-    def test_failure_post_with_not_exist_tweet(self):
+    def test_failure_post_with_not_exist_user(self):
         response = self.client.post(reverse(self.url, kwargs={"username": "not_exist_user"}))
         # Response Status Code: 404
         self.assertEqual(response.status_code, 404)
         # DBにレコードが削除されていない
         self.assertTrue(FriendShip.objects.all().filter(follower=self.user).exists())
 
-    def test_failure_post_with_incorrect_user(self):
+    def test_failure_post_with_incorrect_self(self):
         response = self.client.post(reverse(self.url, kwargs={"username": "tester"}))
         # Response Status Code: 400
         self.assertEqual(response.status_code, 400)
