@@ -3,6 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, ListView
 
+from tweets.forms import CreateTweetForm
+
 from .models import Tweet
 
 
@@ -17,7 +19,7 @@ class HomeView(LoginRequiredMixin, ListView):
 
 class TweetCreateView(LoginRequiredMixin, CreateView):
     model = Tweet
-    fields = ["content"]
+    form_class = CreateTweetForm
     template_name = "tweets/create.html"
     success_url = reverse_lazy(settings.LOGIN_REDIRECT_URL)
 

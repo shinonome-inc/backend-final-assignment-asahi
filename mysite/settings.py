@@ -150,7 +150,7 @@ LOGGING = {
     },
 }
 
-SQL_DEBUG = True 
+SQL_DEBUG = True
 
 if SQL_DEBUG:
 
