@@ -1,0 +1,9 @@
+<div>
+<form class="like-form" id="{{ tweet.pk }}">
+    <button type="submit" class="container">
+            <span class="heart {% if tweet.liked %} is-active {% endif %}"></span>
+        </button>
+</form>
+
+ハート数:　<span id="like-number-{{ tweet.id }}">{{ tweet.like_count}}</span>
+</div>
