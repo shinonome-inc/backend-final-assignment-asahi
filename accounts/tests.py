@@ -3,6 +3,8 @@ from django.contrib.auth import SESSION_KEY, get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from tweets.models import Tweet
+
 User = get_user_model()
 
 
@@ -259,7 +261,10 @@ class TestLoginView(TestCase):
         form = response.context["form"]
 
         # フォームに適切なエラーメッセージが含まれている
-        self.assertIn("正しいユーザー名とパスワードを入力してください。どちらのフィールドも大文字と小文字は区別されます。", form.errors["__all__"])
+        self.assertIn(
+            "正しいユーザー名とパスワードを入力してください。どちらのフィールドも大文字と小文字は区別されます。",
+            form.errors["__all__"],
+        )
         # client.sessionにSESSION_KEYが含まれていない
         self.assertNotIn(SESSION_KEY, self.client.session)
 
@@ -296,8 +301,24 @@ class TestLogoutView(TestCase):
         self.assertNotIn(SESSION_KEY, self.client.session)
 
 
-# class TestUserProfileView(TestCase):
-#     def test_success_get(self):
+class TestUserProfileView(TestCase):
+    def setUp(self):
+        self.dummy_user = User.objects.create_user(username="dummy", password="dummypassword1")
+        self.tweet1 = Tweet.objects.create(user=self.dummy_user, content="dummy tweet")
+        self.user = User.objects.create_user(username="tester", password="testpassword1")
+        self.tweet2 = Tweet.objects.create(user=self.user, content="tester tweet")
+        # テスト時にはログイン必要のため
+        self.client.login(username="tester", password="testpassword1")
+        self.url = reverse("accounts:user_profile", kwargs={"username": self.user})
+
+    def test_success_get(self):
+        response = self.client.get(self.url)
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
+        context_tweets = response.context["tweets"]
+        db_user_tweets = Tweet.objects.filter(user=self.user)
+        # context内に含まれるツイート一覧が、DBに保存されているツイート一覧と同一である
+        self.assertQuerysetEqual(context_tweets, db_user_tweets, ordered=False)
 
 
 # class TestUserProfileEditView(TestCase):

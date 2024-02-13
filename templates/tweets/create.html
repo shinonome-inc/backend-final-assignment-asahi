@@ -1,0 +1,10 @@
+{% extends "base.html" %} 
+{% block title %}Home{% endblock %} 
+{% block content %}
+<h1>Create a tweet</h1>
+<form method="POST">
+    {{ form.as_p }} {% csrf_token %}
+    <button type="submit">ツイート</button>
+</form>
+<a href="{% url 'tweets:home' %}">ホームに戻る</a>
+{% endblock %}
