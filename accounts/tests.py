@@ -318,9 +318,16 @@ class TestUserProfileView(TestCase):
         # Response Status Code: 200
         self.assertEqual(response.status_code, 200)
         context_tweets = response.context["tweets"]
+        context_following_number = response.context["following_number"]
+        context_follower_number = response.context["follower_number"]
         db_user_tweets = Tweet.objects.filter(user=self.user)
+        db_user_following_number = FriendShip.objects.filter(follower=self.user).count()
+        db_user_follower_number = FriendShip.objects.filter(following=self.user).count()
         # context内に含まれるツイート一覧が、DBに保存されているツイート一覧と同一である
         self.assertQuerysetEqual(context_tweets, db_user_tweets, ordered=False)
+        # context内に含まれるフォロー数とフォロワー数がDBに保存されている該当のユーザーのフォロー数とフォロワー数に同一である
+        self.assertEqual(context_following_number, db_user_following_number)
+        self.assertEqual(context_follower_number, db_user_follower_number)
 
 
 # class TestUserProfileEditView(TestCase):
@@ -369,7 +376,6 @@ class TestFollowView(TestCase):
 
 
 class TestUnfollowView(TestCase):
-
     def setUp(self):
         self.dummy_user = User.objects.create_user(username="dummy1", password="dummypassword1")
         self.user = User.objects.create_user(username="tester", password="testpassword")
