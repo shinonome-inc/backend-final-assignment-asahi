@@ -49,7 +49,6 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
 
 
 class FollowView(LoginRequiredMixin, View):
-
     def post(self, request, username):
         following_user = get_object_or_404(User, username=username)
         if request.user == following_user:
@@ -68,7 +67,6 @@ class FollowView(LoginRequiredMixin, View):
 
 
 class UnFollowView(LoginRequiredMixin, View):
-
     def post(self, request, username):
         unfollowing_user = get_object_or_404(User, username=username)
         follow_instance = FriendShip.objects.filter(follower=request.user, following=unfollowing_user)
