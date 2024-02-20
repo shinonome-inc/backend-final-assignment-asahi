@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Tweet
+from .models import Like, Tweet
 
 User = get_user_model()
 
@@ -129,18 +129,65 @@ class TestTweetDeleteView(TestCase):
         self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion)
 
 
-# class TestLikeView(TestCase):
-#     def test_success_post(self):
+class TestLikeView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.tweet = Tweet.objects.create(user=self.user, content="Test tweet 1")
+        self.client.login(username="tester", password="testpassword")
+        self.url = "tweets:like"
 
-#     def test_failure_post_with_not_exist_tweet(self):
+    def test_success_post(self):
+        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
+        # DBにデータが追加されている
+        self.assertTrue(Like.objects.filter(user=self.user, tweet=self.tweet).exists())
 
-#     def test_failure_post_with_liked_tweet(self):
+    def test_failure_post_with_not_exist_tweet(self):
+        queryset_before_like = Like.objects.all()
+        not_exist_tweet_pk = 999
+        response = self.client.post(reverse("tweets:delete", kwargs={"pk": not_exist_tweet_pk}))
+        # 期待通りのステータスコードが返されることを確認
+        self.assertEqual(response.status_code, 404)
+        # DBの中身が削除されていない
+        self.assertQuerysetEqual(Like.objects.all(), queryset_before_like)
+
+    def test_failure_post_with_liked_tweet(self):
+        queryset_before_like = Like.objects.all()
+        self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
+        # DBにレコードが追加されていない
+        self.assertQuerySetEqual(Like.objects.all(), queryset_before_like)
 
 
-# class TestUnLikeView(TestCase):
+class TestUnLikeView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.tweet = Tweet.objects.create(user=self.user, content="Test tweet 1")
+        self.client.login(username="tester", password="testpassword")
+        Like.objects.create(user=self.user, tweet=self.tweet)
+        self.url = "tweets:unlike"
 
-#     def test_success_post(self):
+    def test_success_post(self):
+        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        #  Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
+        # DBにデータが削除されている
+        self.assertFalse(Like.objects.filter(user=self.user, tweet=self.tweet).exists())
 
-#     def test_failure_post_with_not_exist_tweet(self):
+    def test_failure_post_with_not_exist_tweet(self):
+        queryset_before_delete = Like.objects.all()
+        not_exist_tweet_pk = 999
+        response = self.client.post(reverse(self.url, kwargs={"pk": not_exist_tweet_pk}))
+        # 期待通りのステータスコードが返されることを確認
+        self.assertEqual(response.status_code, 404)
+        # DBの中身が削除されていない
+        self.assertQuerysetEqual(Like.objects.all(), queryset_before_delete)
 
-#     def test_failure_post_with_unliked_tweet(self):
+    def test_failure_post_with_unliked_tweet(self):
+        self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        # Response Status Code: 200
+        self.assertEqual(response.status_code, 200)
