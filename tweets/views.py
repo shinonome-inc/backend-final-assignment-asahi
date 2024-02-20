@@ -89,7 +89,7 @@ class UnlikeView(View):
     def post(self, *args, **kwargs):
         tweet_pk = kwargs["pk"]
         self.tweet = get_object_or_404(Tweet, id=tweet_pk)
-        like = get_object_or_404(Like, user=self.request.user, tweet=tweet_pk)
+        like = Like.objects.filter(user=self.request.user, tweet=tweet_pk)
         like_number = Like.objects.all().filter(tweet=self.tweet).count()
         if like:
             like.delete()
