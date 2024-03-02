@@ -2,9 +2,28 @@
 {% block title %}Home{% endblock %} 
 {% block content %}
 <h1>プロフィール</h1>
-<h2>{{ user }}</h2>
+<h2>{{ profile_user }}</h2>
+{# 閲覧するプロフィールがその人自身のものでない場合 #}
+{% if profile_user != request.user %}
+{% if profile_user not in user_following %}
+{# 閲覧するプロフィールの人をフォローしていないとき #}
+  <form method="post" action="{% url 'accounts:follow' username=profile_user.username %}">
+    {% csrf_token %}
+    <button type="submit">フォロー</button>
+  </form>
+  {% else %}
+  <form method="post" action="{% url 'accounts:unfollow' username=profile_user.username %}">
+    {% csrf_token %}
+    <button type="submit">フォローを解除</button>
+  </form>
+  {% endif %}
+{% endif %}
+<a href="{% url 'accounts:following_list' username=profile_user %}"><p>フォロー数：{{following_number}}</p></a>
+<a href="{% url 'accounts:follower_list' username=profile_user %}"><p>フォロワー数：{{follower_number}}</p></a>
+
 {% for tweet in tweets %}
-<li><p>{{ tweet.user.username }}</p><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p></li>
+<li><p>{{ tweet.profile_user.username }}</p><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p></li>
+<br>
 {% endfor %}
-<a href="{% url 'tweets:home' %}">ホームに戻る</a>
+<p><a href="{% url 'tweets:home' %}">ホームに戻る</a></p>
 {% endblock %}
