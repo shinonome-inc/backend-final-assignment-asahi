@@ -49,7 +49,6 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
 
 
 class FollowView(LoginRequiredMixin, View):
-
     def post(self, request, username):
         following_user = get_object_or_404(User, username=username)
         if request.user == following_user:
@@ -68,7 +67,6 @@ class FollowView(LoginRequiredMixin, View):
 
 
 class UnFollowView(LoginRequiredMixin, View):
-
     def post(self, request, username):
         unfollowing_user = get_object_or_404(User, username=username)
         follow_instance = FriendShip.objects.filter(follower=request.user, following=unfollowing_user)
@@ -90,7 +88,7 @@ class FollowingListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         self.username = self.kwargs.get("username")
-        following_user = User.objects.get(username=self.username)
+        following_user = get_object_or_404(User, username=self.username)
         return (
             FriendShip.objects.all()
             .filter(follower=following_user)
@@ -111,7 +109,7 @@ class FollowerListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         self.username = self.kwargs.get("username")
-        follower_user = User.objects.get(username=self.username)
+        follower_user = get_object_or_404(User, username=self.username)
         return (
             FriendShip.objects.all().filter(following=follower_user).select_related("follower").order_by("-created_at")
         )

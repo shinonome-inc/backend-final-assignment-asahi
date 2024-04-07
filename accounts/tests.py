@@ -305,16 +305,12 @@ class TestLogoutView(TestCase):
 
 class TestUserProfileView(TestCase):
     def setUp(self):
-        # tester1（ダミー）
-        self.user = User.objects.create_user(username="tester1", password="testpassword1")
-        self.client.login(username="tester1", password="testpassword1")
-        self.tweet1 = Tweet.objects.create(user=self.user, content="tester1 tweet")
-        self.client.logout()
-        # tester2(test_success_get対象user)
-        self.user = User.objects.create_user(username="tester2", password="testpassword2")
-        self.client.login(username="tester2", password="testpassword2")
-        self.tweet2 = Tweet.objects.create(user=self.user, content="tester2 tweet")
-
+        self.dummy_user = User.objects.create_user(username="dummy", password="dummypassword1")
+        self.tweet1 = Tweet.objects.create(user=self.dummy_user, content="dummy tweet")
+        self.user = User.objects.create_user(username="tester", password="testpassword1")
+        self.tweet2 = Tweet.objects.create(user=self.user, content="tester tweet")
+        # テスト時にはログイン必要のため
+        self.client.login(username="tester", password="testpassword1")
         self.url = reverse("accounts:user_profile", kwargs={"username": self.user})
 
     def test_success_get(self):
@@ -322,9 +318,16 @@ class TestUserProfileView(TestCase):
         # Response Status Code: 200
         self.assertEqual(response.status_code, 200)
         context_tweets = response.context["tweets"]
+        context_following_number = response.context["following_number"]
+        context_follower_number = response.context["follower_number"]
         db_user_tweets = Tweet.objects.filter(user=self.user)
+        db_user_following_number = FriendShip.objects.filter(follower=self.user).count()
+        db_user_follower_number = FriendShip.objects.filter(following=self.user).count()
         # context内に含まれるツイート一覧が、DBに保存されているツイート一覧と同一である
         self.assertQuerysetEqual(context_tweets, db_user_tweets, ordered=False)
+        # context内に含まれるフォロー数とフォロワー数がDBに保存されている該当のユーザーのフォロー数とフォロワー数に同一である
+        self.assertEqual(context_following_number, db_user_following_number)
+        self.assertEqual(context_follower_number, db_user_follower_number)
 
 
 # class TestUserProfileEditView(TestCase):
@@ -373,7 +376,6 @@ class TestFollowView(TestCase):
 
 
 class TestUnfollowView(TestCase):
-
     def setUp(self):
         self.dummy_user = User.objects.create_user(username="dummy1", password="dummypassword1")
         self.user = User.objects.create_user(username="tester", password="testpassword")
@@ -394,14 +396,14 @@ class TestUnfollowView(TestCase):
         following_user = get_object_or_404(User, username="dummy1")
         self.assertFalse(FriendShip.objects.all().filter(follower=self.user, following=following_user).exists())
 
-    def test_failure_post_with_not_exist_tweet(self):
+    def test_failure_post_with_not_exist_user(self):
         response = self.client.post(reverse(self.url, kwargs={"username": "not_exist_user"}))
         # Response Status Code: 404
         self.assertEqual(response.status_code, 404)
         # DBにレコードが削除されていない
         self.assertTrue(FriendShip.objects.all().filter(follower=self.user).exists())
 
-    def test_failure_post_with_incorrect_user(self):
+    def test_failure_post_with_incorrect_self(self):
         response = self.client.post(reverse(self.url, kwargs={"username": "tester"}))
         # Response Status Code: 400
         self.assertEqual(response.status_code, 400)

@@ -11,10 +11,12 @@
     <header class="atras">
       <nav>
         <ul>
-          <li><a href="{% url 'welcome:welcome' %}">Twitter Clone</a></li>
           {% if not request.user.is_authenticated %}
+          <li><a href="{% url 'welcome:welcome' %}">Twitter Home</a></li>
           <li><a href="{% url 'accounts:signup' %}">Sign up</a></li>
           <li><a href="{% url 'accounts:login' %}">Login</a></li>
+          {% else %}
+          <li><a href="{% url 'tweets:home' %}">Twitter Clone</a></li>
           {% endif %}
         </ul>
       </nav>

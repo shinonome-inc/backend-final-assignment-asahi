@@ -3,10 +3,10 @@
 {% block content %}
 <h1>プロフィール</h1>
 <h2>{{ profile_user }}</h2>
-<!-- 閲覧するプロフィールがその人自身のものでない場合 -->
+{# 閲覧するプロフィールがその人自身のものでない場合 #}
 {% if profile_user != request.user %}
-<!-- 閲覧するプロフィールの人をフォローしていないとき -->
-  {% if profile_user not in user_following %}
+{% if profile_user not in user_following %}
+{# 閲覧するプロフィールの人をフォローしていないとき #}
   <form method="post" action="{% url 'accounts:follow' username=profile_user.username %}">
     {% csrf_token %}
     <button type="submit">フォロー</button>
