@@ -45,10 +45,14 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context["following_number"] = FriendShip.objects.all().filter(follower=profile_user).count()
         context["follower_number"] = FriendShip.objects.all().filter(following=profile_user).count()
         context["profile_user"] = profile_user
-        context["tweets"] = Tweet.objects.select_related("user").filter(user=profile_user).annotate(
+        context["tweets"] = (
+            Tweet.objects.select_related("user")
+            .filter(user=profile_user)
+            .annotate(
                 liked=Exists(Like.objects.filter(user=self.request.user, tweet=OuterRef("id"))),
                 like_count=Count("likes"),
             )
+        )
         return context
 
 
