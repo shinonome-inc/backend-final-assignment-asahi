@@ -22,8 +22,11 @@
 <a href="{% url 'accounts:follower_list' username=profile_user %}"><p>フォロワー数：{{follower_number}}</p></a>
 
 {% for tweet in tweets %}
-<li><p>{{ tweet.profile_user.username }}</p><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p></li>
+<li><p><a href="{% url 'tweets:detail' pk=tweet.pk %}">{{ tweet.content }}</a></p><p>{{ tweet.created_at }}</p>{% include "tweets/like.html" %}</li>
 <br>
 {% endfor %}
 <p><a href="{% url 'tweets:home' %}">ホームに戻る</a></p>
+{% endblock %}
+{% block extrajs %}
+{% include "tweets/like-script.html" %}
 {% endblock %}
