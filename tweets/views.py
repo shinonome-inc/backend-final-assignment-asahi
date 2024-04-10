@@ -74,16 +74,15 @@ class LikeView(View):
     def post(self, *args, **kwargs):
         tweet_pk = kwargs["pk"]
         self.tweet = get_object_or_404(Tweet, id=tweet_pk)
-        is_liked = Like.objects.all().filter(tweet=self.tweet, user=self.request.user).exists()
-        like_number = Like.objects.all().filter(tweet=self.tweet).count()
+        is_liked = Like.objects.filter(tweet=self.tweet, user=self.request.user).exists()
+        like_number = Like.objects.filter(tweet=self.tweet).count()
         if is_liked:
             return JsonResponse({"like_number": like_number})
         else:
-            like = Like()
-            like.tweet = self.tweet
-            like.user = self.request.user
+            like = Like(tweet=self.tweet, user=self.request.user)
             like.save()
-            return JsonResponse({"like_number": like_number + 1})
+            new_like_number = like_number + 1
+            return JsonResponse({"like_number": new_like_number})
 
 
 class UnlikeView(View):
@@ -92,9 +91,10 @@ class UnlikeView(View):
         tweet_pk = kwargs["pk"]
         self.tweet = get_object_or_404(Tweet, id=tweet_pk)
         like = Like.objects.filter(user=self.request.user, tweet=tweet_pk)
-        like_number = Like.objects.all().filter(tweet=self.tweet).count()
+        like_number = Like.objects.filter(tweet=self.tweet).count()
         if like:
             like.delete()
-            return JsonResponse({"like_number": like_number - 1})
+            new_like_number = like_number - 1
+            return JsonResponse({"like_number": new_like_number})
         else:
             return JsonResponse({"like_number": like_number})
