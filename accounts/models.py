@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -7,8 +8,8 @@ class User(AbstractUser):
 
 
 class FriendShip(models.Model):
-    follower = models.ForeignKey(User, related_name="followings", on_delete=models.CASCADE)
-    following = models.ForeignKey(User, related_name="followers", on_delete=models.CASCADE)
+    follower = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="followings", on_delete=models.CASCADE)
+    following = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="followers", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
