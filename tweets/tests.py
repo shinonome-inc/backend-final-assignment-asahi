@@ -7,14 +7,27 @@ from .models import Like, Tweet
 User = get_user_model()
 
 
-class TestHomeView(TestCase):
+class AbstractTestCase(TestCase):
+    is_need_kwargs: bool = False
+    url_name: str
+    not_exist_tweet_pk = 999
+
     def setUp(self):
-        self.url = reverse("tweets:home")
         self.user = User.objects.create_user(username="tester", password="testpassword")
+        self.user2 = User.objects.create_user(username="tester2", password="testpassword2")
         self.client.login(username="tester", password="testpassword")
         # ツイートを作成
         self.tweet1 = Tweet.objects.create(user=self.user, content="Test tweet 1")
         self.tweet2 = Tweet.objects.create(user=self.user, content="Test tweet 2")
+        if self.is_need_kwargs:
+            self.url = reverse(self.url_name, kwargs={"pk": self.tweet1.pk})
+        else:
+            self.url = reverse(self.url_name)
+        Like.objects.create(user=self.user, tweet=self.tweet1)
+
+
+class TestHomeView(AbstractTestCase):
+    url_name = "tweets:home"
 
     def test_success_get(self):
         response = self.client.get(self.url)
@@ -26,11 +39,8 @@ class TestHomeView(TestCase):
         self.assertQuerysetEqual(context_tweets, db_tweets, ordered=False)
 
 
-class TestTweetCreateView(TestCase):
-    def setUp(self):
-        self.url = reverse("tweets:create")
-        self.user = User.objects.create_user(username="tester", password="testpassword")
-        self.client.login(username="tester", password="testpassword")
+class TestTweetCreateView(AbstractTestCase):
+    url_name = "tweets:create"
 
     def test_success_get(self):
         response = self.client.get(self.url)
@@ -77,13 +87,9 @@ class TestTweetCreateView(TestCase):
         self.assertFalse(Tweet.objects.filter(content=invalid_data["content"]).exists())
 
 
-class TestTweetDetailView(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="testpassword")
-        self.client.login(username="tester", password="testpassword")
-        # ツイートを作成
-        self.tweet1 = Tweet.objects.create(user=self.user, content="Test tweet 1")
-        self.url = reverse("tweets:detail", kwargs={"pk": self.tweet1.pk})
+class TestTweetDetailView(AbstractTestCase):
+    is_need_kwargs = True
+    url_name = "tweets:detail"
 
     def test_success_get(self):
         response = self.client.get(self.url)
@@ -93,13 +99,9 @@ class TestTweetDetailView(TestCase):
         self.assertTrue(Tweet.objects.filter(content=self.tweet1.content).exists())
 
 
-class TestTweetDeleteView(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="testpassword")
-        self.client.login(username="tester", password="testpassword")
-        # ツイートを作成
-        self.tweet1 = Tweet.objects.create(user=self.user, content="Test tweet 1")
-        self.url = reverse("tweets:delete", kwargs={"pk": self.tweet1.pk})
+class TestTweetDeleteView(AbstractTestCase):
+    is_need_kwargs = True
+    url_name = "tweets:delete"
 
     def test_success_post(self):
         response = self.client.post(self.url)
@@ -110,43 +112,37 @@ class TestTweetDeleteView(TestCase):
 
     def test_failure_post_with_not_exist_tweet(self):
         queryset_before_deletion = Tweet.objects.all()
-        not_exist_tweet_pk = 999
-        response = self.client.post(reverse("tweets:delete", kwargs={"pk": not_exist_tweet_pk}))
+        response = self.client.post(reverse(self.url_name, kwargs={"pk": self.not_exist_tweet_pk}))
         # 期待通りのステータスコードが返されることを確認
         self.assertEqual(response.status_code, 404)
         # DBの中身が削除されていない
-        self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion)
+        self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion, ordered=False)
 
     def test_failure_post_with_incorrect_user(self):
         queryset_before_deletion = Tweet.objects.all()
-        # ユーザー2の作成
-        self.user = User.objects.create_user(username="tester2", password="testpassword2")
+        # ユーザー2によるログイン
         self.client.login(username="tester2", password="testpassword2")
         response = self.client.post(self.url)
         # Response Status Code: 403
         self.assertEqual(response.status_code, 403)
         # DBのデータが削除されていない
-        self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion)
+        self.assertQuerysetEqual(Tweet.objects.all(), queryset_before_deletion, ordered=False)
 
 
-class TestLikeView(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="testpassword")
-        self.tweet = Tweet.objects.create(user=self.user, content="Test tweet 1")
-        self.client.login(username="tester", password="testpassword")
-        self.url = "tweets:like"
+class TestLikeView(AbstractTestCase):
+    is_need_kwargs = True
+    url_name = "tweets:like"
 
     def test_success_post(self):
-        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        response = self.client.post(self.url)
         # Response Status Code: 200
         self.assertEqual(response.status_code, 200)
         # DBにデータが追加されている
-        self.assertTrue(Like.objects.filter(user=self.user, tweet=self.tweet).exists())
+        self.assertTrue(Like.objects.filter(user=self.user, tweet=self.tweet1).exists())
 
     def test_failure_post_with_not_exist_tweet(self):
         queryset_before_like = Like.objects.all()
-        not_exist_tweet_pk = 999
-        response = self.client.post(reverse("tweets:delete", kwargs={"pk": not_exist_tweet_pk}))
+        response = self.client.post(reverse(self.url_name, kwargs={"pk": self.not_exist_tweet_pk}))
         # 期待通りのステータスコードが返されることを確認
         self.assertEqual(response.status_code, 404)
         # DBの中身が削除されていない
@@ -154,40 +150,35 @@ class TestLikeView(TestCase):
 
     def test_failure_post_with_liked_tweet(self):
         queryset_before_like = Like.objects.all()
-        self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
-        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        self.client.post(self.url)
+        response = self.client.post(self.url)
         # Response Status Code: 200
         self.assertEqual(response.status_code, 200)
         # DBにレコードが追加されていない
         self.assertQuerySetEqual(Like.objects.all(), queryset_before_like)
 
 
-class TestUnLikeView(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="tester", password="testpassword")
-        self.tweet = Tweet.objects.create(user=self.user, content="Test tweet 1")
-        self.client.login(username="tester", password="testpassword")
-        Like.objects.create(user=self.user, tweet=self.tweet)
-        self.url = "tweets:unlike"
+class TestUnLikeView(AbstractTestCase):
+    is_need_kwargs = True
+    url_name = "tweets:unlike"
 
     def test_success_post(self):
-        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        response = self.client.post(self.url)
         #  Response Status Code: 200
         self.assertEqual(response.status_code, 200)
         # DBにデータが削除されている
-        self.assertFalse(Like.objects.filter(user=self.user, tweet=self.tweet).exists())
+        self.assertFalse(Like.objects.filter(user=self.user, tweet=self.tweet1).exists())
 
     def test_failure_post_with_not_exist_tweet(self):
         queryset_before_delete = Like.objects.all()
-        not_exist_tweet_pk = 999
-        response = self.client.post(reverse(self.url, kwargs={"pk": not_exist_tweet_pk}))
+        response = self.client.post(reverse(self.url_name, kwargs={"pk": self.not_exist_tweet_pk}))
         # 期待通りのステータスコードが返されることを確認
         self.assertEqual(response.status_code, 404)
         # DBの中身が削除されていない
         self.assertQuerysetEqual(Like.objects.all(), queryset_before_delete)
 
     def test_failure_post_with_unliked_tweet(self):
-        self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
-        response = self.client.post(reverse(self.url, kwargs={"pk": self.tweet.id}))
+        self.client.post(self.url)
+        response = self.client.post(self.url)
         # Response Status Code: 200
         self.assertEqual(response.status_code, 200)
