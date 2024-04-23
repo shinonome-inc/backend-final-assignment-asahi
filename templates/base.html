@@ -1,12 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <title>{% block title %}Twitter Clone{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
   </head>
   <body>
     <!-- header  -->
-    <header class="mb-3">
+    <header class="atras">
       <nav>
         <ul>
           {% if not request.user.is_authenticated %}
@@ -31,8 +33,10 @@
         <form method="POST" action="/accounts/logout/"> {% csrf_token %}
           <button type="submit">ログアウト</button>
         </form>
-      {% endif %}
+        {% endif %}
     </main>
     <!-- /main  -->
   </body>
+  <script src="{% static 'js/script.js' %}"></script>
 </html>
+  

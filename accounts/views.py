@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
+from django.db.models import Count, Exists, OuterRef
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -9,7 +10,7 @@ from django.views import View
 from django.views.generic import CreateView, ListView, TemplateView
 
 from accounts.models import FriendShip, User
-from tweets.models import Tweet
+from tweets.models import Like, Tweet
 
 from .forms import SignupForm
 
@@ -44,7 +45,14 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context["following_number"] = FriendShip.objects.all().filter(follower=profile_user).count()
         context["follower_number"] = FriendShip.objects.all().filter(following=profile_user).count()
         context["profile_user"] = profile_user
-        context["tweets"] = Tweet.objects.select_related("user").filter(user=profile_user)
+        context["tweets"] = (
+            Tweet.objects.select_related("user")
+            .filter(user=profile_user)
+            .annotate(
+                liked=Exists(Like.objects.filter(user=self.request.user, tweet=OuterRef("id"))),
+                like_count=Count("likes"),
+            )
+        )
         return context
 
 

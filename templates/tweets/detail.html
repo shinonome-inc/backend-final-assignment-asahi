@@ -5,8 +5,12 @@
 <p>Username: {{ tweet.user.username }}</p>
 <p>Content: {{ tweet.content }}</p>
 <p>Created at: {{ tweet.created_at }}</p>
+{% include "tweets/like.html" %}
 {% if user.pk == tweet.user.pk %}
 <a href="{% url 'tweets:delete' pk=tweet.pk %}">このツイートを削除する</a>
 {% endif %}
 <p><a href="{% url 'tweets:home' %}">ホームに戻る</a></p>
+{% endblock %}
+{% block extrajs %}
+{% include "tweets/like-script.html" %}
 {% endblock %}
