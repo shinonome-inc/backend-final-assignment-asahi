@@ -6,7 +6,7 @@
 <p>Content: {{ tweet.content }}</p>
 <p>Created at: {{ tweet.created_at }}</p>
 <form method="POST">
-    {{ form.as_p }} {% csrf_token %}
+{% csrf_token %}
     <button type="submit">削除</button>
 </form>
 <a href="{% url 'tweets:home' %}">ホームに戻る</a>
